@@ -12,7 +12,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 MARGIN=30
 SCREEN_TITLE = "Space Shooter"
-NUM_METEORS=10
+NUM_METEORS=5
 NUM_ENEMIES= 5 
 STRATING_LOCATION=(400,100)
 BULLET_DEMAGE = 10
@@ -55,7 +55,7 @@ class Player(arcade.Sprite):
 
 
 class Enemy(arcade.Sprite):
-    def __init__(self, position):
+    def __init__(self,position):
         super().__init__("PNG/Sprites/Ships/spaceShips_004.png", 0.5)
         self.hp=ENEMY_HP
         (self.center_x, self.center_y)=position
@@ -66,8 +66,10 @@ class Enemy(arcade.Sprite):
         self.dy+=dy
 
 class Meteor(arcade.Sprite):
-    def __init__(self, position):
+    def __init__(self, x,y, position):
         super().__init__("PNG/Sprites/Meteors/spaceMeteors_001.png", 0.5)
+        self.x=x
+        self.y=y
         self.hp=ENEMY_HP
         (self.center_x, self.center_y)=position
         self.dx=0
@@ -95,15 +97,13 @@ class Window(arcade.Window):
         self.player=Player()
         self.score=0
         self.status=GAME_INTRO_0
-        self.background = None
+        arcade.set_background_color(arcade.color.BLUE)
 
 
 
 
     def setup(self):
-        #set up background images
-
-        self.background = arcade.load_texture("PNG/background.png")
+        
         #set up enemies
         for i in range(NUM_ENEMIES):
             x=random.randint(MARGIN,SCREEN_WIDTH-MARGIN)
@@ -115,7 +115,7 @@ class Window(arcade.Window):
         for a in range(NUM_METEORS):
             x=random.randint(MARGIN,SCREEN_WIDTH-MARGIN)
             y=random.randint(MARGIN,SCREEN_HEIGHT-MARGIN)
-            self.meteor=Meteor((x,y))
+            self.meteor=Meteor(x,y,(x,y))
             self.meteor_list.append(self.meteor)
 
 
@@ -136,16 +136,16 @@ class Window(arcade.Window):
             draw welcome interface
         '''
         output="Space Shooter"
-        arcade.draw_text(output,400,500,arcade.color.WHITE,54)
+        arcade.draw_text(output,200,500,arcade.color.WHITE,54)
 
         output2="Click right mouse to start"
-        arcade.draw_text(output2,400,400,arcade.color.WHITE,45)
+        arcade.draw_text(output2,200,400,arcade.color.WHITE,45)
     def draw_game_over(self):
 
         output3="GAME OVER"
-        arcade.draw_text(output3,400,500,arcade.color.WHITE,54)
+        arcade.draw_text(output3,200,500,arcade.color.WHITE,54)
         output4="Score: "+str(self.score)
-        arcade.draw_text(output4,400,400,arcade.color.WHITE,35)
+        arcade.draw_text(output4,200,400,arcade.color.WHITE,35)
     
     def on_draw(self):
         """ Called whenever we need to draw the window. """
