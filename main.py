@@ -12,10 +12,10 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 MARGIN=30
 SCREEN_TITLE = "Space Shooter"
-NUM_METEORS=5
-NUM_ENEMIES= 5 
+# NUM_METEORS=10
+NUM_ENEMIES= 6 
 STRATING_LOCATION=(400,100)
-BULLET_DEMAGE = 10
+BULLET_DAMAGE = 10
 ENEMY_HP=100
 HIT_SCORE = 10
 KILL_SCORE=100
@@ -38,11 +38,11 @@ class Bullet(arcade.Sprite):
         self.center_y+=self.dy
         
 class Missiles(arcade.Sprite):
-    def __init__(self,position,velocity,damage):
+    def __init__(self,locate,speed,damage):
 
-        super().__init__("PNG/Sprites/Missiles/spaceMissiles_006.png",0.5)
-        (self.center_x,self.center_y)=position
-        (self.dx,self.dy)=velocity
+        super().__init__("PNG/Sprites/Missiles/spaceMissiles_004.png",0.5)
+        (self.center_x,self.center_y)=locate
+        (self.dx,self.dy)=speed
         self.damage=damage
     def update(self):
         self.center_x+=self.dx
@@ -59,25 +59,24 @@ class Enemy(arcade.Sprite):
         super().__init__("PNG/Sprites/Ships/spaceShips_004.png", 0.5)
         self.hp=ENEMY_HP
         (self.center_x, self.center_y)=position
-        self.dx=0
-        self.dy=0
-    def accelerate(self,dx,dy):
-        self.dx+=dx
-        self.dy+=dy
 
-class Meteor(arcade.Sprite):
-    def __init__(self, x,y, position):
-        super().__init__("PNG/Sprites/Meteors/spaceMeteors_001.png", 0.5)
-        self.x=x
-        self.y=y
-        self.hp=ENEMY_HP
-        (self.center_x, self.center_y)=position
-        self.dx=0
-        self.dy=0
 
-    def accelerate(self,dx,dy):
-        self.dx+=dx
-        self.dy+=dy
+# class Meteor(arcade.Sprite):
+#     def __init__(self, position):
+#         super().__init__("PNG/Sprites/Meteors/spaceMeteors_001.png", 0.2)
+#         (self.center_x, self.center_y)=position
+#         self.hp=20
+#         self.dx=0
+#         self.dy=0
+
+#     def update(self):
+#         self.center_x += self.dx
+#         self.center_y += self.dy
+        
+
+#     def accelerate(self,dx,dy):
+#         self.dx+=dx
+#         self.dy+=dy
 
 class Window(arcade.Window):
 
@@ -93,10 +92,14 @@ class Window(arcade.Window):
         self.set_mouse_visible(False)
         self.bullet_list=arcade.SpriteList()
         self.enemy_list=arcade.SpriteList()
-        self.meteor_list=arcade.SpriteList()
+        # self.meteor_list=arcade.SpriteList()
+        self.missiles_list=arcade.SpriteList()
         self.player=Player()
         self.score=0
+        self.life=100
+        self.level=1
         self.status=GAME_INTRO_0
+        self.enemy_list_hp={}
         arcade.set_background_color(arcade.color.BLUE)
 
 
@@ -106,30 +109,60 @@ class Window(arcade.Window):
         
         #set up enemies
         for i in range(NUM_ENEMIES):
-            x=random.randint(MARGIN,SCREEN_WIDTH-MARGIN)
-            y=random.randint(MARGIN,SCREEN_HEIGHT-MARGIN)
-            self.enemy=Enemy((x,y))
-            self.enemy_list.append(self.enemy)
+            x=120*(i+1)+40
+            y=500
+            self.enemy = Enemy((x,y))
+            self.enemy_hp=self.enemy.hp           
+            self.enemy_list_hp[self.enemy]=self.enemy_hp
+            self.enemy_list.append(self.enemy) 
+                        
+        
 
-        #set up Meteors
-        for a in range(NUM_METEORS):
-            x=random.randint(MARGIN,SCREEN_WIDTH-MARGIN)
-            y=random.randint(MARGIN,SCREEN_HEIGHT-MARGIN)
-            self.meteor=Meteor(x,y,(x,y))
-            self.meteor_list.append(self.meteor)
+      
 
 
 
     def update(self, delta_time):
         #make the enemies and meteors moving
-        for b in self.enemy_list:
-            b.accelerate(0,GRAVITY)
-            b.update()
+        self.bullet_list.update()
+        self.missiles_list.update()
+        for d in self.enemy_list: 
+            if random.randrange(200) == 0:
+                a= d.center_x
+                b= d.center_y
+                if self.level==1:
+                    missiles=Missiles((a,b),(0,-1),BULLET_DAMAGE)
+                    self.missiles_list.append(missiles)
+                elif self.level==2:
+                    missiles=Missiles((a,b),(0,-3),BULLET_DAMAGE)
+                    self.missiles_list.append(missiles)
+                elif self.level==3:
+                    missiles=Missiles((a,b),(0,-5),BULLET_DAMAGE)
+                    self.missiles_list.append(missiles)
         
-        for c in self.meteor_list:
-            c.accelerate(0,GRAVITY)
-            c.update()
-
+        for j in self.missiles_list:
+                attack=arcade.check_for_collision(j,self.player)
+                if bool(attack) is True:
+                    j.kill()
+                    self.life-=HIT_SCORE
+                    if int(self.life)==0:
+                        self.player.kill()
+                        self.status=GAME_END
+        
+        for e in self.enemy_list: 
+            for i in self.bullet_list:
+                hit=arcade.check_for_collision_with_list(i,self.enemy_list)
+                if len(hit)>0:
+                    i.kill()
+                    self.score+=HIT_SCORE
+                    for b in hit:
+                        self.enemy_list_hp[b]-=HIT_SCORE
+                        if int(self.enemy_list_hp[b])==0:
+                            b.kill() 
+                            del self.enemy_list_hp[b]
+                            #if there is no enemy in the list, the game will end 
+                            if bool(self.enemy_list_hp) is False:
+                                self.status=GAME_END
 
     def draw_game_intro(self):
         '''
@@ -138,7 +171,7 @@ class Window(arcade.Window):
         output="Space Shooter"
         arcade.draw_text(output,200,500,arcade.color.WHITE,54)
 
-        output2="Click right mouse to start"
+        output2="Click [enter] to start"
         arcade.draw_text(output2,200,400,arcade.color.WHITE,45)
     def draw_game_over(self):
 
@@ -154,11 +187,19 @@ class Window(arcade.Window):
         if self.status==GAME_INTRO:
             self.draw_game_intro()
         if self.status==GAME_RUNNING:
-            arcade.draw_text(str(self.score),20, SCREEN_HEIGHT-40, arcade.color.WHITE, 16)
+            arcade.draw_text("Score: "+str(self.score),40, SCREEN_HEIGHT-40, arcade.color.WHITE, 16)
+            arcade.draw_text("Life: "+str(self.life),40, SCREEN_HEIGHT-60, arcade.color.WHITE, 16)
             self.player.draw()
+            self.missiles_list.draw()
             self.bullet_list.draw()
             self.enemy_list.draw()
-            self.meteor_list.draw()
+            # self.meteor_list.draw()
+            if self.score>0 and self.score<100:
+                arcade.draw_text("level:"+str(self.level),40, SCREEN_HEIGHT-80, arcade.color.WHITE, 16)
+            if self.score>100 and self.score<300:
+                arcade.draw_text("level:"+str(self.level),40, SCREEN_HEIGHT-80, arcade.color.WHITE, 16)
+            if self.score>300 and self.score<6:
+                arcade.draw_text("level:"+str(self.level),40, SCREEN_HEIGHT-80, arcade.color.WHITE, 16)
         if self.status==GAME_END:
             self.draw_game_over()
 
@@ -167,21 +208,41 @@ class Window(arcade.Window):
 
     def on_mouse_motion(self, x, y, dx, dy):
         """ Called to update our objects. Happens approximately 60 times per second."""
-        pass
+        self.player.center_x = x
+        self.player.center_y = y
 
     def on_mouse_press(self, x, y, button, modifiers):
         """
         Called when the user presses a mouse button.
         """
-        if button== arcade.MOUSE_BUTTON_RIGHT:
-            if self.status==GAME_INTRO_0:
-                self.status=GAME_INTRO
-            elif self.status==GAME_INTRO:
-                self.setup()
-                self.status=GAME_RUNNING
-            elif self.status==GAME_RUNNING:
-                self.setup()
-                self.status=GAME_END
+        
+        
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            if self.score<100:
+                x = self.player.center_x
+                y = self.player.center_y + 15
+                bullet = Bullet((x,y),(0,5),BULLET_DAMAGE)
+                self.bullet_list.append(bullet)
+            elif self.score<300:
+                self.level=2
+                x = self.player.center_x
+                y = self.player.center_y + 15
+                bullet1 = Bullet((x-20,y),(0,8),BULLET_DAMAGE)
+                bullet2 = Bullet((x+20,y),(0,8),BULLET_DAMAGE)
+                self.bullet_list.append(bullet1)
+                self.bullet_list.append(bullet2)
+            elif self.score<=600:
+                self.level=3
+                x = self.player.center_x
+                y = self.player.center_y + 15
+                bullet = Bullet((x,y),(0,10),BULLET_DAMAGE)
+                bullet1 = Bullet((x-20,y),(0,10),BULLET_DAMAGE)
+                bullet2 = Bullet((x+20,y),(0,10),BULLET_DAMAGE)
+                self.bullet_list.append(bullet)
+                self.bullet_list.append(bullet1)
+                self.bullet_list.append(bullet2)
+            
+        
 
     def on_mouse_release(self, x, y, button, modifiers):
         """
@@ -191,19 +252,75 @@ class Window(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         """ Called whenever the user presses a key. """
+        
+        if key== arcade.key.ENTER:
+            if self.status==GAME_INTRO_0:
+                self.status=GAME_INTRO
+            elif self.status==GAME_INTRO:
+                self.setup()
+                self.status=GAME_RUNNING
+            elif self.status==GAME_RUNNING:
+                self.setup()
+                self.status=GAME_END
+
         if key == arcade.key.LEFT:
             print("Left")
+            self.player.center_x-=20
+
         elif key == arcade.key.RIGHT:
             print("Right")
+            self.player.center_x+=20
+
         elif key == arcade.key.UP:
             print("Up")
+            self.player.center_y+=20
+
         elif key == arcade.key.DOWN:
             print("Down")
+            self.player.center_y-=20
 
+        elif key == arcade.key.SPACE:
+            if self.score<100:
+                x = self.player.center_x
+                y = self.player.center_y + 15
+                bullet = Bullet((x,y),(0,5),BULLET_DAMAGE)
+                self.bullet_list.append(bullet)
+            elif self.score<300:
+                self.level=2
+                x = self.player.center_x
+                y = self.player.center_y + 15
+                bullet1 = Bullet((x-20,y),(0,8),BULLET_DAMAGE)
+                bullet2 = Bullet((x+20,y),(0,8),BULLET_DAMAGE)
+                self.bullet_list.append(bullet1)
+                self.bullet_list.append(bullet2)
+            elif self.score<=600:
+                self.level=3
+                x = self.player.center_x
+                y = self.player.center_y + 15
+                bullet = Bullet((x,y),(0,10),BULLET_DAMAGE)
+                bullet1 = Bullet((x-20,y),(0,10),BULLET_DAMAGE)
+                bullet2 = Bullet((x+20,y),(0,10),BULLET_DAMAGE)
+                self.bullet_list.append(bullet)
+                self.bullet_list.append(bullet1)
+                self.bullet_list.append(bullet2)
+            
     def on_key_release(self, key, modifiers):
         """ Called whenever a user releases a key. """
-        pass
+        if key == arcade.key.LEFT:
+            print("Left")
+            self.player.center_x-=10
 
+        elif key == arcade.key.RIGHT:
+            print("Right")
+            self.player.center_x+=10
+
+        elif key == arcade.key.UP:
+            print("Up")
+            self.player.center_y+=10
+
+        elif key == arcade.key.DOWN:
+            print("Down")
+            self.player.center_y-=10
 
 def main():
     window = Window(SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE)
