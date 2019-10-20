@@ -1,0 +1,45 @@
+Name: Robbie Frank
+Date: 19/10/19
+Project: Space Shooter
+Peer's repository: https://github.com/hhhzhao/05-Space-shooter.git
+
+
+
+What is something you learned by reviewing your peer's project?
+I couldn't actually get the code to compile, I got a message saying "no module name for color"
+and when I deleted that line of code, the game ran but it was just a blue screen with nothing else on it.
+ 
+
+What is something you saw in your peer's project that you would like to apply to your own programming projects?
+Even though I couldn't play it, I like how there are multiple levels, this is definitely
+something I would like to add to my 2D games.
+ 
+
+What suggestions would you have for your peer to improve his/her code?
+Besides it not compiling from the "no module name for color" error, I like how there are comments
+throughout the code clearly explaning what is happening.
+ 
+
+What could have been clearer or better commented?
+I think the comments were great, very well commented.
+ 
+
+Was there anything in the code that was confusing to you? If so, what?
+I didn't find anything particularly confusing, but I do have to commend you for spending some
+extra time on this project to really go out of your way to include some cool extra features.
+ 
+
+Does the repository contain an appropriate LICENSE?
+Yes it does.
+ 
+
+What is something he/she could add to the README.md to make it more descriptive?
+Nope, I think the README file is very descriptive, it describes the point of the game
+as well as the controls.
+ 
+
+Pay a compliment to your peer based on the quality of his/her code.
+I am sad that I couldn't get this to work on my PC, I'm sure it's a fun game, it looks
+like you spent some quality time writing the code and planning out the game to make sure it
+is fun and engaging. I like how you used some more complex things within python arcade to add
+something unique to the game.
